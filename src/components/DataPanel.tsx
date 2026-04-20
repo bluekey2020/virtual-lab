@@ -4,6 +4,7 @@ import { analyzeCircuit } from '../engine/circuitEngine'
 
 export const DataPanel: React.FC = () => {
   const components = useLabStore((state) => state.components)
+  const wires = useLabStore((state) => state.wires)
   const measurements = useLabStore((state) => state.measurements)
   const isRunning = useLabStore((state) => state.isRunning)
 
@@ -62,6 +63,20 @@ export const DataPanel: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {wires.length > 0 && (
+        <div className="p-4 border-t border-gray-200">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">导线连接 ({wires.length})</h3>
+          <div className="space-y-1 text-xs text-gray-500">
+            {wires.map((w) => (
+              <div key={w.id} className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                <span>{w.fromComponent} → {w.toComponent}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -10,7 +10,7 @@ export interface Equipment {
 
 export interface CircuitComponent {
   id: string
-  type: 'battery' | 'resistor' | 'switch' | 'ammeter' | 'voltmeter' | 'bulb' | 'wire'
+  type: string
   x: number
   y: number
   rotation: number
@@ -18,11 +18,29 @@ export interface CircuitComponent {
   connections: string[]
 }
 
+export interface Wire {
+  id: string
+  fromComponent: string
+  fromPort: string
+  toComponent: string
+  toPort: string
+}
+
+export interface DataRecord {
+  id: string
+  timestamp: number
+  values: Record<string, number>
+  note?: string
+}
+
 export interface ExperimentState {
   currentExperiment: string | null
   components: CircuitComponent[]
+  wires: Wire[]
   selectedComponent: string | null
+  selectedWire: string | null
   measurements: Record<string, number>
+  dataRecords: DataRecord[]
   isRunning: boolean
   stepIndex: number
 }

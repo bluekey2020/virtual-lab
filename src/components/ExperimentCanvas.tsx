@@ -1,128 +1,124 @@
-import React, { useRef, useCallback } from 'react'
-import { Stage, Layer, Rect, Text, Circle, Group } from 'react-konva'
+import React, { useRef, useCallback, useState, useEffect } from 'react'
+import { Stage, Layer, Rect, Text, Circle, Group, Line } from 'react-konva'
 import { useLabStore } from '../store/labStore'
-import type { CircuitComponent } from '../types'
-
-const componentColors: Record<string, string> = {
-  battery: '#3b82f6',
-  resistor: '#f59e0b',
-  switch: '#6b7280',
-  ammeter: '#10b981',
-  voltmeter: '#8b5cf6',
-  bulb: '#fbbf24',
-  wire: '#9ca3af',
-}
-
-const componentLabels: Record<string, string> = {
-  battery: '电源',
-  resistor: '电阻',
-  switch: '开关',
-  ammeter: '电流表',
-  voltmeter: '电压表',
-  bulb: '灯泡',
-  wire: '导线',
-}
-
-interface CircuitNodeProps {
-  component: CircuitComponent
-  isSelected: boolean
-  onDragEnd: (e: any) => void
-  onClick: (e: any) => void
-}
-
-const CircuitNode: React.FC<CircuitNodeProps> = ({ component, isSelected, onDragEnd, onClick }) => {
-  const color = componentColors[component.type] || '#6b7280'
-  const label = componentLabels[component.type] || component.type
-
-  return (
-    <Group
-      x={component.x}
-      y={component.y}
-      rotation={component.rotation}
-      draggable
-      onDragEnd={onDragEnd}
-      onClick={onClick}
-    >
-      {component.type === 'battery' && (
-        <>
-          <Rect width={80} height={50} fill={color} cornerRadius={6} opacity={0.9} />
-          <Text text="+" x={10} y={15} fontSize={18} fill="white" fontStyle="bold" />
-          <Text text="-" x={60} y={15} fontSize={18} fill="white" fontStyle="bold" />
-          <Text text={`${component.properties.voltage}V`} x={25} y={30} fontSize={10} fill="white" />
-        </>
-      )}
-
-      {component.type === 'resistor' && (
-        <>
-          <Rect width={80} height={30} fill={color} cornerRadius={4} opacity={0.9} />
-          <Text text={`${component.properties.resistance}Ω`} x={20} y={8} fontSize={11} fill="white" />
-        </>
-      )}
-
-      {component.type === 'switch' && (
-        <>
-          <Rect width={60} height={40} fill={component.properties.closed ? '#10b981' : '#ef4444'} cornerRadius={6} opacity={0.9} />
-          <Text text={component.properties.closed ? '闭合' : '断开'} x={15} y={12} fontSize={12} fill="white" />
-        </>
-      )}
-
-      {component.type === 'ammeter' && (
-        <>
-          <Circle x={35} y={35} radius={35} fill={color} opacity={0.9} />
-          <Text text="A" x={28} y={25} fontSize={20} fill="white" fontStyle="bold" />
-        </>
-      )}
-
-      {component.type === 'voltmeter' && (
-        <>
-          <Circle x={35} y={35} radius={35} fill={color} opacity={0.9} />
-          <Text text="V" x={28} y={25} fontSize={20} fill="white" fontStyle="bold" />
-        </>
-      )}
-
-      {component.type === 'bulb' && (
-        <>
-          <Circle x={25} y={25} radius={25} fill={color} opacity={0.6 + (component.properties.brightness || 0) * 0.4} />
-          <Text text="💡" x={12} y={12} fontSize={24} />
-        </>
-      )}
-
-      {component.type === 'wire' && (
-        <Rect width={100} height={10} fill={color} cornerRadius={2} opacity={0.7} />
-      )}
-
-      <Text
-        text={label}
-        x={component.type === 'ammeter' || component.type === 'voltmeter' ? 15 : 10}
-        y={component.type === 'wire' ? -15 : component.type === 'ammeter' || component.type === 'voltmeter' ? 75 : -15}
-        fontSize={10}
-        fill="#374151"
-      />
-
-      {isSelected && (
-        <Rect
-          width={component.type === 'ammeter' || component.type === 'voltmeter' ? 70 : component.type === 'wire' ? 100 : 80}
-          height={component.type === 'ammeter' || component.type === 'voltmeter' ? 70 : component.type === 'wire' ? 10 : component.type === 'resistor' ? 30 : 50}
-          stroke="#4f46e5"
-          strokeWidth={2}
-          dash={[4, 4]}
-          cornerRadius={4}
-        />
-      )}
-    </Group>
-  )
-}
+import { getComponent, getAllComponents, getPortGlobalPosition } from '../plugins/ComponentPlugin'
+import type { CircuitComponent, Wire } from '../types'
 
 interface ExperimentCanvasProps {
   onDrop: (e: React.DragEvent, x: number, y: number) => void
 }
 
+/** 连接点组件 */
+interface ConnectionPortProps {
+  x: number
+  y: number
+  onDragStart: (e: any, portId: string, componentId: string) => void
+  componentId: string
+  portId: string
+}
+
+const ConnectionPort: React.FC<ConnectionPortProps> = ({ x, y, onDragStart, componentId, portId }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <Circle
+      x={x}
+      y={y}
+      radius={6}
+      fill={isHovered ? '#4f46e5' : '#6b7280'}
+      stroke="white"
+      strokeWidth={2}
+      draggable
+      onDragStart={(e) => onDragStart(e, portId, componentId)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    />
+  )
+}
+
+/** 导线渲染组件 */
+interface WireRendererProps {
+  wire: Wire
+  isSelected: boolean
+  onClick: () => void
+}
+
+const WireRenderer: React.FC<WireRendererProps> = ({ wire, isSelected, onClick }) => {
+  const components = useLabStore((state) => state.components)
+  const fromComp = components.find((c) => c.id === wire.fromComponent)
+  const toComp = components.find((c) => c.id === wire.toComponent)
+
+  if (!fromComp || !toComp) return null
+
+  const fromPos = getPortGlobalPosition(fromComp, wire.fromPort)
+  const toPos = getPortGlobalPosition(toComp, wire.toPort)
+
+  if (!fromPos || !toPos) return null
+
+  return (
+    <Group onClick={onClick}>
+      <Line
+        points={[fromPos.x, fromPos.y, toPos.x, toPos.y]}
+        stroke={isSelected ? '#4f46e5' : '#374151'}
+        strokeWidth={isSelected ? 3 : 2}
+        dash={isSelected ? [6, 4] : []}
+      />
+      <Circle x={fromPos.x} y={fromPos.y} radius={3} fill="#374151" />
+      <Circle x={toPos.x} y={toPos.y} radius={3} fill="#374151" />
+    </Group>
+  )
+}
+
 export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) => {
   const stageRef = useRef<any>(null)
   const components = useLabStore((state) => state.components)
+  const wires = useLabStore((state) => state.wires)
   const selectedComponent = useLabStore((state) => state.selectedComponent)
+  const selectedWire = useLabStore((state) => state.selectedWire)
   const updateComponent = useLabStore((state) => state.updateComponent)
   const selectComponent = useLabStore((state) => state.selectComponent)
+  const selectWire = useLabStore((state) => state.selectWire)
+  const removeComponent = useLabStore((state) => state.removeComponent)
+  const removeWire = useLabStore((state) => state.removeWire)
+
+  const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth - 512, height: window.innerHeight - 64 })
+
+  // 响应式尺寸
+  useEffect(() => {
+    const handleResize = () => {
+      setCanvasSize({
+        width: window.innerWidth - 512,
+        height: window.innerHeight - 64,
+      })
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  // 删除功能：键盘 Delete/Backspace
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedComponent) {
+          removeComponent(selectedComponent)
+        } else if (selectedWire) {
+          removeWire(selectedWire)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedComponent, selectedWire, removeComponent, removeWire])
+
+  // 连线状态
+  const [wireDrawing, setWireDrawing] = useState<{
+    componentId: string
+    portId: string
+    startX: number
+    startY: number
+    currentX: number
+    currentY: number
+  } | null>(null)
 
   const handleDragEnd = useCallback(
     (id: string) => (e: any) => {
@@ -147,37 +143,142 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
     [onDrop]
   )
 
+  // 连线开始
+  const handlePortDragStart = useCallback((e: any, portId: string, componentId: string) => {
+    const stage = stageRef.current
+    if (!stage) return
+
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+
+    setWireDrawing({
+      componentId,
+      portId,
+      startX: pointer.x,
+      startY: pointer.y,
+      currentX: pointer.x,
+      currentY: pointer.y,
+    })
+  }, [])
+
+  // 连线移动
+  const handlePortDragMove = useCallback((e: any) => {
+    if (!wireDrawing) return
+    const stage = stageRef.current
+    if (!stage) return
+
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+
+    setWireDrawing((prev) => prev ? { ...prev, currentX: pointer.x, currentY: pointer.y } : null)
+  }, [wireDrawing])
+
+  // 连线结束
+  const handlePortDragEnd = useCallback((e: any) => {
+    if (!wireDrawing) return
+
+    const stage = stageRef.current
+    if (!stage) return
+
+    const pointer = stage.getPointerPosition()
+    if (!pointer) return
+
+    // 查找目标连接点
+    const targetShape = stage.getIntersection({ x: pointer.x, y: pointer.y })
+    if (targetShape && targetShape.attrs.componentId && targetShape.attrs.portId) {
+      const toComponentId = targetShape.attrs.componentId
+      const toPortId = targetShape.attrs.portId
+
+      // 避免自连和重复连接
+      if (toComponentId !== wireDrawing.componentId) {
+        const addWire = useLabStore.getState().addWire
+        addWire({
+          id: `wire_${Date.now()}`,
+          fromComponent: wireDrawing.componentId,
+          fromPort: wireDrawing.portId,
+          toComponent: toComponentId,
+          toPort: toPortId,
+        })
+      }
+    }
+
+    setWireDrawing(null)
+  }, [wireDrawing])
+
+  const allPlugins = getAllComponents()
+
   return (
     <div className="flex-1 bg-gray-50 relative overflow-hidden">
       <Stage
         ref={stageRef}
-        width={window.innerWidth - 512}
-        height={window.innerHeight - 64}
+        width={canvasSize.width}
+        height={canvasSize.height}
         onDrop={handleDrop}
         onDragOver={(e: any) => e.evt.preventDefault()}
-        onClick={() => selectComponent(null)}
+        onClick={() => { selectComponent(null); selectWire(null) }}
+        onMouseMove={handlePortDragMove}
       >
         <Layer>
-          <Rect
-            x={0}
-            y={0}
-            width={window.innerWidth - 512}
-            height={window.innerHeight - 64}
-            fill="#f8fafc"
-          />
+          <Rect x={0} y={0} width={canvasSize.width} height={canvasSize.height} fill="#f8fafc" />
           
-          {components.map((comp) => (
-            <CircuitNode
-              key={comp.id}
-              component={comp}
-              isSelected={selectedComponent === comp.id}
-              onDragEnd={handleDragEnd(comp.id)}
+          {/* 渲染导线 */}
+          {wires.map((wire) => (
+            <WireRenderer
+              key={wire.id}
+              wire={wire}
+              isSelected={selectedWire === wire.id}
               onClick={(e: any) => {
                 e.cancelBubble = true
-                selectComponent(comp.id)
+                selectWire(wire.id)
               }}
             />
           ))}
+
+          {/* 渲染临时连线 */}
+          {wireDrawing && (
+            <Line
+              points={[wireDrawing.startX, wireDrawing.startY, wireDrawing.currentX, wireDrawing.currentY]}
+              stroke="#4f46e5"
+              strokeWidth={2}
+              dash={[6, 4]}
+            />
+          )}
+          
+          {/* 渲染组件 */}
+          {components.map((comp) => {
+            const plugin = getComponent(comp.type)
+            if (!plugin) return null
+
+            return (
+              <Group
+                key={comp.id}
+                x={comp.x}
+                y={comp.y}
+                rotation={comp.rotation}
+                draggable
+                onDragEnd={handleDragEnd(comp.id)}
+                onClick={(e: any) => {
+                  e.cancelBubble = true
+                  selectComponent(comp.id)
+                }}
+              >
+                {/* 使用插件渲染组件 */}
+                {plugin.render(comp, selectedComponent === comp.id)}
+                
+                {/* 渲染连接点 */}
+                {plugin.ports.map((port) => (
+                  <ConnectionPort
+                    key={port.id}
+                    x={port.x}
+                    y={port.y}
+                    componentId={comp.id}
+                    portId={port.id}
+                    onDragStart={handlePortDragStart}
+                  />
+                ))}
+              </Group>
+            )
+          })}
         </Layer>
       </Stage>
 

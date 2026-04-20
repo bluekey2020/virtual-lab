@@ -4,14 +4,18 @@ import { ExperimentCanvas } from './ExperimentCanvas'
 import { DataPanel } from './DataPanel'
 import { StepGuide } from './StepGuide'
 import { AIPanel } from './AIPanel'
+import { PropertyEditor } from './PropertyEditor'
+import { DataRecorder } from './DataRecorder'
+import { ReportGenerator } from './ReportGenerator'
 import { useLabStore } from '../store/labStore'
-import { equipmentCatalog } from '../data/experiments'
+import { getComponent } from '../plugins/ComponentPlugin'
 import type { CircuitComponent } from '../types'
 
 let componentIdCounter = 0
 
 export const ExperimentWorkbench: React.FC = () => {
   const [showAI, setShowAI] = useState(false)
+  const [showReport, setShowReport] = useState(false)
   const addComponent = useLabStore((state) => state.addComponent)
   const currentExperiment = useLabStore((state) => state.currentExperiment)
   const isRunning = useLabStore((state) => state.isRunning)
@@ -27,16 +31,16 @@ export const ExperimentWorkbench: React.FC = () => {
       const equipmentId = window._dragEquipmentId
       if (!equipmentId) return
 
-      const equipment = equipmentCatalog.find((e) => e.id === equipmentId)
-      if (!equipment) return
+      const plugin = getComponent(equipmentId)
+      if (!plugin) return
 
       const newComponent: CircuitComponent = {
         id: `comp_${++componentIdCounter}`,
-        type: equipmentId as CircuitComponent['type'],
-        x: x - 40,
-        y: y - 25,
+        type: equipmentId,
+        x: x - plugin.width / 2,
+        y: y - plugin.height / 2,
         rotation: 0,
-        properties: { ...equipment.properties } as Record<string, number>,
+        properties: { ...plugin.defaultProperties },
         connections: [],
       }
 
@@ -70,6 +74,8 @@ export const ExperimentWorkbench: React.FC = () => {
               🤖 AI 助手
             </button>
             
+            <ReportGenerator />
+            
             <button
               onClick={toggleRunning}
               disabled={!currentExperiment}
@@ -94,7 +100,10 @@ export const ExperimentWorkbench: React.FC = () => {
         <div className="flex-1 relative">
           <ExperimentCanvas onDrop={handleDrop} />
           <StepGuide />
+          <PropertyEditor />
+          <DataRecorder />
           {showAI && <AIPanel onClose={() => setShowAI(false)} />}
+          {showReport && <ReportGenerator />}
         </div>
       </div>
 
