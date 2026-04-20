@@ -1,4 +1,4 @@
-import { ExperimentRecord, Equipment } from '../types'
+import type { ExperimentRecord, Equipment } from '../types'
 
 export const experiments: ExperimentRecord[] = [
   {

@@ -1,4 +1,4 @@
-import { CircuitComponent } from '../types'
+import type { CircuitComponent } from '../types'
 
 export interface CircuitAnalysisResult {
   totalVoltage: number

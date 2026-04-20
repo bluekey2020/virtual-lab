@@ -1,8 +1,7 @@
 import React, { useRef, useCallback } from 'react'
-import { Stage, Layer, Rect, Text, Circle, Line, Group } from 'react-konva'
+import { Stage, Layer, Rect, Text, Circle, Group } from 'react-konva'
 import { useLabStore } from '../store/labStore'
-import { CircuitComponent } from '../types'
-import { equipmentCatalog } from '../data/experiments'
+import type { CircuitComponent } from '../types'
 
 const componentColors: Record<string, string> = {
   battery: '#3b82f6',
@@ -28,7 +27,7 @@ interface CircuitNodeProps {
   component: CircuitComponent
   isSelected: boolean
   onDragEnd: (e: any) => void
-  onClick: () => void
+  onClick: (e: any) => void
 }
 
 const CircuitNode: React.FC<CircuitNodeProps> = ({ component, isSelected, onDragEnd, onClick }) => {
@@ -103,7 +102,7 @@ const CircuitNode: React.FC<CircuitNodeProps> = ({ component, isSelected, onDrag
       {isSelected && (
         <Rect
           width={component.type === 'ammeter' || component.type === 'voltmeter' ? 70 : component.type === 'wire' ? 100 : 80}
-          height={component.type === 'ammeter' || component.type === 'voltmeter' ? 70 : component.type === 'wire' ? 10 : component.type === 'resistor' || component.type === 'wire' ? 30 : 50}
+          height={component.type === 'ammeter' || component.type === 'voltmeter' ? 70 : component.type === 'wire' ? 10 : component.type === 'resistor' ? 30 : 50}
           stroke="#4f46e5"
           strokeWidth={2}
           dash={[4, 4]}
@@ -155,7 +154,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
         width={window.innerWidth - 512}
         height={window.innerHeight - 64}
         onDrop={handleDrop}
-        onDragOver={(e) => e.evt.preventDefault()}
+        onDragOver={(e: any) => e.evt.preventDefault()}
         onClick={() => selectComponent(null)}
       >
         <Layer>
@@ -173,7 +172,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
               component={comp}
               isSelected={selectedComponent === comp.id}
               onDragEnd={handleDragEnd(comp.id)}
-              onClick={(e) => {
+              onClick={(e: any) => {
                 e.cancelBubble = true
                 selectComponent(comp.id)
               }}

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { CircuitComponent, ExperimentState } from '../types'
+import type { CircuitComponent, ExperimentState } from '../types'
 
 interface LabStore extends ExperimentState {
   setCurrentExperiment: (id: string) => void

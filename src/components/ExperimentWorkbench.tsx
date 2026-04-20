@@ -6,7 +6,7 @@ import { StepGuide } from './StepGuide'
 import { AIPanel } from './AIPanel'
 import { useLabStore } from '../store/labStore'
 import { equipmentCatalog } from '../data/experiments'
-import { CircuitComponent } from '../types'
+import type { CircuitComponent } from '../types'
 
 let componentIdCounter = 0
 
@@ -36,7 +36,7 @@ export const ExperimentWorkbench: React.FC = () => {
         x: x - 40,
         y: y - 25,
         rotation: 0,
-        properties: { ...equipment.properties },
+        properties: { ...equipment.properties } as Record<string, number>,
         connections: [],
       }
 
