@@ -11,13 +11,20 @@ const app = express()
 const PORT = process.env.PORT || 3001
 
 // Middleware
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for development
+}))
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: true, // Allow all origins in development
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 app.use(morgan('dev'))
 app.use(express.json())
+
+// Handle preflight OPTIONS requests
+app.options('*', cors())
 
 // Routes
 app.use('/api/auth', authRoutes)
