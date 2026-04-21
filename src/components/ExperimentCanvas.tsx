@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
 import { Stage, Layer, Rect, Circle, Group, Line } from 'react-konva'
+import Konva from 'konva'
 import { useLabStore } from '../store/labStore'
 import { getComponent, getPortGlobalPosition } from '../plugins/ComponentPlugin'
 import type { Wire } from '../types'
@@ -8,24 +9,39 @@ interface ExperimentCanvasProps {
   onDrop: (e: React.DragEvent, x: number, y: number) => void
 }
 
-/** 连接点组件 */
-interface ConnectionPortProps {
+/** 连接点组件 - 带悬停动画 */
+const ConnectionPort: React.FC<{
   x: number
   y: number
   onDragStart: (e: any, portId: string, componentId: string) => void
   componentId: string
   portId: string
-}
-
-const ConnectionPort: React.FC<ConnectionPortProps> = ({ x, y, onDragStart, componentId, portId }) => {
+}> = ({ x, y, onDragStart, componentId, portId }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const circleRef = useRef<any>(null)
+
+  useEffect(() => {
+    if (circleRef.current) {
+      const targetRadius = isHovered ? 8 : 6
+      const targetFill = isHovered ? '#4f46e5' : '#6b7280'
+      
+      new Konva.Tween({
+        node: circleRef.current,
+        duration: 0.15,
+        radius: targetRadius,
+        fill: targetFill,
+        easing: ((t: number) => t * (2 - t)) as any,
+      }).play()
+    }
+  }, [isHovered])
 
   return (
     <Circle
+      ref={circleRef}
       x={x}
       y={y}
       radius={6}
-      fill={isHovered ? '#4f46e5' : '#6b7280'}
+      fill="#6b7280"
       stroke="white"
       strokeWidth={2}
       draggable
@@ -36,14 +52,13 @@ const ConnectionPort: React.FC<ConnectionPortProps> = ({ x, y, onDragStart, comp
   )
 }
 
-/** 导线渲染组件 */
-interface WireRendererProps {
+/** 导线渲染组件 - 带电流动画 */
+const WireRenderer: React.FC<{
   wire: Wire
   isSelected: boolean
+  isEnergized: boolean
   onClick: (e: any) => void
-}
-
-const WireRenderer: React.FC<WireRendererProps> = ({ wire, isSelected, onClick }) => {
+}> = ({ wire, isSelected, isEnergized, onClick }) => {
   const components = useLabStore((state) => state.components)
   const fromComp = components.find((c) => c.id === wire.fromComponent)
   const toComp = components.find((c) => c.id === wire.toComponent)
@@ -57,14 +72,94 @@ const WireRenderer: React.FC<WireRendererProps> = ({ wire, isSelected, onClick }
 
   return (
     <Group onClick={onClick}>
+      {/* 导线底色 */}
       <Line
         points={[fromPos.x, fromPos.y, toPos.x, toPos.y]}
         stroke={isSelected ? '#4f46e5' : '#374151'}
         strokeWidth={isSelected ? 3 : 2}
         dash={isSelected ? [6, 4] : []}
       />
+      {/* 电流动画 */}
+      {isEnergized && (
+        <Line
+          points={[fromPos.x, fromPos.y, toPos.x, toPos.y]}
+          stroke="#22d3ee"
+          strokeWidth={3}
+          dash={[4, 8]}
+          lineCap="round"
+          lineJoin="round"
+          shadowColor="#22d3ee"
+          shadowBlur={6}
+        />
+      )}
+      {/* 连接点 */}
       <Circle x={fromPos.x} y={fromPos.y} radius={3} fill="#374151" />
       <Circle x={toPos.x} y={toPos.y} radius={3} fill="#374151" />
+    </Group>
+  )
+}
+
+/** 组件渲染 - 带入场动画 */
+const AnimatedComponent: React.FC<{
+  comp: any
+  plugin: any
+  isSelected: boolean
+  onSelect: () => void
+  onDragEnd: (e: any) => void
+  onPortDragStart: (e: any, portId: string, componentId: string) => void
+}> = ({ comp, plugin, isSelected, onSelect, onDragEnd, onPortDragStart }) => {
+  const groupRef = useRef<any>(null)
+  const [scale, setScale] = useState(0.3)
+  const [opacity, setOpacity] = useState(0)
+
+  // 入场动画
+  useEffect(() => {
+    const timeout = requestAnimationFrame(() => {
+      setScale(1)
+      setOpacity(1)
+    })
+    return () => cancelAnimationFrame(timeout)
+  }, [])
+
+  // 选中脉冲动画
+  useEffect(() => {
+    if (groupRef.current) {
+      groupRef.current.to({
+        scaleX: isSelected ? 1.05 : 1,
+        scaleY: isSelected ? 1.05 : 1,
+        duration: 0.2,
+        easing: ((t: number) => t * (2 - t)) as any,
+      })
+    }
+  }, [isSelected])
+
+  return (
+    <Group
+      ref={groupRef}
+      x={comp.x}
+      y={comp.y}
+      rotation={comp.rotation}
+      scaleX={scale}
+      scaleY={scale}
+      opacity={opacity}
+      draggable
+      onDragEnd={onDragEnd}
+      onClick={(e: any) => {
+        e.cancelBubble = true
+        onSelect()
+      }}
+    >
+      {plugin.render(comp, isSelected)}
+      {plugin.ports.map((port: any) => (
+        <ConnectionPort
+          key={port.id}
+          x={port.x}
+          y={port.y}
+          componentId={comp.id}
+          portId={port.id}
+          onDragStart={onPortDragStart}
+        />
+      ))}
     </Group>
   )
 }
@@ -80,6 +175,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
   const selectWire = useLabStore((state) => state.selectWire)
   const removeComponent = useLabStore((state) => state.removeComponent)
   const removeWire = useLabStore((state) => state.removeWire)
+  const isRunning = useLabStore((state) => state.isRunning)
 
   const [canvasSize, setCanvasSize] = useState({ width: window.innerWidth - 512, height: window.innerHeight - 64 })
 
@@ -95,7 +191,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // 删除功能：键盘 Delete/Backspace
+  // 删除功能
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -143,7 +239,6 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
     [onDrop]
   )
 
-  // 连线开始
   const handlePortDragStart = useCallback((_e: any, portId: string, componentId: string) => {
     const stage = stageRef.current
     if (!stage) return
@@ -161,7 +256,6 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
     })
   }, [])
 
-  // 连线移动
   const handlePortDragMove = useCallback(() => {
     if (!wireDrawing) return
     const stage = stageRef.current
@@ -185,7 +279,24 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
         onMouseMove={handlePortDragMove}
       >
         <Layer>
+          {/* 网格背景 */}
           <Rect x={0} y={0} width={canvasSize.width} height={canvasSize.height} fill="#f8fafc" />
+          {Array.from({ length: Math.ceil(canvasSize.width / 40) }).map((_, i) => (
+            <Line
+              key={`vg-${i}`}
+              points={[i * 40, 0, i * 40, canvasSize.height]}
+              stroke="#e5e7eb"
+              strokeWidth={0.5}
+            />
+          ))}
+          {Array.from({ length: Math.ceil(canvasSize.height / 40) }).map((_, i) => (
+            <Line
+              key={`hg-${i}`}
+              points={[0, i * 40, canvasSize.width, i * 40]}
+              stroke="#e5e7eb"
+              strokeWidth={0.5}
+            />
+          ))}
           
           {/* 渲染导线 */}
           {wires.map((wire) => (
@@ -193,6 +304,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
               key={wire.id}
               wire={wire}
               isSelected={selectedWire === wire.id}
+              isEnergized={isRunning}
               onClick={(e: any) => {
                 e.cancelBubble = true
                 selectWire(wire.id)
@@ -207,42 +319,26 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
               stroke="#4f46e5"
               strokeWidth={2}
               dash={[6, 4]}
+              shadowColor="#4f46e5"
+              shadowBlur={4}
             />
           )}
           
-          {/* 渲染组件 */}
+          {/* 渲染组件 - 带动画 */}
           {components.map((comp) => {
             const plugin = getComponent(comp.type)
             if (!plugin) return null
 
             return (
-              <Group
+              <AnimatedComponent
                 key={comp.id}
-                x={comp.x}
-                y={comp.y}
-                rotation={comp.rotation}
-                draggable
+                comp={comp}
+                plugin={plugin}
+                isSelected={selectedComponent === comp.id}
+                onSelect={() => selectComponent(comp.id)}
                 onDragEnd={handleDragEnd(comp.id)}
-                onClick={(e: any) => {
-                  e.cancelBubble = true
-                  selectComponent(comp.id)
-                }}
-              >
-                {/* 使用插件渲染组件 */}
-                {plugin.render(comp, selectedComponent === comp.id)}
-                
-                {/* 渲染连接点 */}
-                {plugin.ports.map((port) => (
-                  <ConnectionPort
-                    key={port.id}
-                    x={port.x}
-                    y={port.y}
-                    componentId={comp.id}
-                    portId={port.id}
-                    onDragStart={handlePortDragStart}
-                  />
-                ))}
-              </Group>
+                onPortDragStart={handlePortDragStart}
+              />
             )
           })}
         </Layer>
@@ -251,7 +347,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
       {components.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center">
-            <p className="text-4xl mb-3">🔬</p>
+            <p className="text-4xl mb-3 animate-bounce">🔬</p>
             <p className="text-gray-400 text-sm">从左侧器材库拖拽器材到此处</p>
           </div>
         </div>
