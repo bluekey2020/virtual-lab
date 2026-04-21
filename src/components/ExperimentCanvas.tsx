@@ -1,8 +1,8 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
-import { Stage, Layer, Rect, Text, Circle, Group, Line } from 'react-konva'
+import { Stage, Layer, Rect, Circle, Group, Line } from 'react-konva'
 import { useLabStore } from '../store/labStore'
-import { getComponent, getAllComponents, getPortGlobalPosition } from '../plugins/ComponentPlugin'
-import type { CircuitComponent, Wire } from '../types'
+import { getComponent, getPortGlobalPosition } from '../plugins/ComponentPlugin'
+import type { Wire } from '../types'
 
 interface ExperimentCanvasProps {
   onDrop: (e: React.DragEvent, x: number, y: number) => void
@@ -40,7 +40,7 @@ const ConnectionPort: React.FC<ConnectionPortProps> = ({ x, y, onDragStart, comp
 interface WireRendererProps {
   wire: Wire
   isSelected: boolean
-  onClick: () => void
+  onClick: (e: any) => void
 }
 
 const WireRenderer: React.FC<WireRendererProps> = ({ wire, isSelected, onClick }) => {
@@ -144,7 +144,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
   )
 
   // 连线开始
-  const handlePortDragStart = useCallback((e: any, portId: string, componentId: string) => {
+  const handlePortDragStart = useCallback((_e: any, portId: string, componentId: string) => {
     const stage = stageRef.current
     if (!stage) return
 
@@ -162,7 +162,7 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
   }, [])
 
   // 连线移动
-  const handlePortDragMove = useCallback((e: any) => {
+  const handlePortDragMove = useCallback(() => {
     if (!wireDrawing) return
     const stage = stageRef.current
     if (!stage) return
@@ -172,40 +172,6 @@ export const ExperimentCanvas: React.FC<ExperimentCanvasProps> = ({ onDrop }) =>
 
     setWireDrawing((prev) => prev ? { ...prev, currentX: pointer.x, currentY: pointer.y } : null)
   }, [wireDrawing])
-
-  // 连线结束
-  const handlePortDragEnd = useCallback((e: any) => {
-    if (!wireDrawing) return
-
-    const stage = stageRef.current
-    if (!stage) return
-
-    const pointer = stage.getPointerPosition()
-    if (!pointer) return
-
-    // 查找目标连接点
-    const targetShape = stage.getIntersection({ x: pointer.x, y: pointer.y })
-    if (targetShape && targetShape.attrs.componentId && targetShape.attrs.portId) {
-      const toComponentId = targetShape.attrs.componentId
-      const toPortId = targetShape.attrs.portId
-
-      // 避免自连和重复连接
-      if (toComponentId !== wireDrawing.componentId) {
-        const addWire = useLabStore.getState().addWire
-        addWire({
-          id: `wire_${Date.now()}`,
-          fromComponent: wireDrawing.componentId,
-          fromPort: wireDrawing.portId,
-          toComponent: toComponentId,
-          toPort: toPortId,
-        })
-      }
-    }
-
-    setWireDrawing(null)
-  }, [wireDrawing])
-
-  const allPlugins = getAllComponents()
 
   return (
     <div className="flex-1 bg-gray-50 relative overflow-hidden">
