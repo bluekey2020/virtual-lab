@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { EquipmentPanel } from './EquipmentPanel'
 import { ExperimentCanvas } from './ExperimentCanvas'
 import { DataPanel } from './DataPanel'
@@ -9,18 +10,30 @@ import { DataRecorder } from './DataRecorder'
 import { ReportGenerator } from './ReportGenerator'
 import { useLabStore } from '../store/labStore'
 import { getComponent } from '../plugins/ComponentPlugin'
+import { experiments } from '../data/experiments'
 import type { CircuitComponent } from '../types'
 
 let componentIdCounter = 0
 
 export const ExperimentWorkbench: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const [showAI, setShowAI] = useState(false)
-  const [showReport, setShowReport] = useState(false)
   const addComponent = useLabStore((state) => state.addComponent)
   const currentExperiment = useLabStore((state) => state.currentExperiment)
   const isRunning = useLabStore((state) => state.isRunning)
   const toggleRunning = useLabStore((state) => state.toggleRunning)
   const resetExperiment = useLabStore((state) => state.resetExperiment)
+  const setCurrentExperiment = useLabStore((state) => state.setCurrentExperiment)
+
+  // 初始化实验
+  useEffect(() => {
+    if (id && id !== currentExperiment) {
+      setCurrentExperiment(id)
+    }
+  }, [id, currentExperiment, setCurrentExperiment])
+
+  const experiment = experiments.find((e) => e.id === currentExperiment)
 
   const handleDragStart = useCallback((equipmentId: string) => {
     window._dragEquipmentId = equipmentId
@@ -50,6 +63,10 @@ export const ExperimentWorkbench: React.FC = () => {
     [addComponent]
   )
 
+  const handleBack = () => {
+    navigate('/')
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <EquipmentPanel onDragStart={handleDragStart} />
@@ -57,8 +74,14 @@ export const ExperimentWorkbench: React.FC = () => {
       <div className="flex-1 flex flex-col relative">
         <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4">
           <div className="flex items-center gap-4">
+            <button
+              onClick={handleBack}
+              className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            >
+              ← 返回
+            </button>
             <h1 className="text-lg font-semibold text-gray-800">
-              {currentExperiment ? '虚拟实验台' : '选择实验开始'}
+              {experiment ? experiment.title : '虚拟实验台'}
             </h1>
           </div>
           
@@ -103,7 +126,6 @@ export const ExperimentWorkbench: React.FC = () => {
           <PropertyEditor />
           <DataRecorder />
           {showAI && <AIPanel onClose={() => setShowAI(false)} />}
-          {showReport && <ReportGenerator />}
         </div>
       </div>
 

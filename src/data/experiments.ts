@@ -1,6 +1,7 @@
 import type { ExperimentRecord, Equipment } from '../types'
 
 export const experiments: ExperimentRecord[] = [
+  // ===== 物理实验 =====
   {
     id: 'ohm-law',
     title: '欧姆定律验证实验',
@@ -10,11 +11,13 @@ export const experiments: ExperimentRecord[] = [
     difficulty: 2,
     knowledgePoints: ['电流', '电压', '电阻关系', '欧姆定律 I=U/R'],
     steps: [
-      '连接电路：将电源、开关、定值电阻、电流表串联',
-      '将电压表并联在定值电阻两端',
-      '闭合开关，记录电流表和电压表示数',
-      '改变电源电压，重复测量 3 次',
-      '分析数据，验证 I=U/R 关系',
+      '连接电路：从器材库拖拽电源、开关、定值电阻、电流表到实验台',
+      '将电源、开关、定值电阻、电流表依次串联连接',
+      '将电压表并联在定值电阻两端（连接电阻的两个接线柱）',
+      '检查电路连接是否正确，确保开关处于断开状态',
+      '闭合开关，观察并记录电流表和电压表的示数',
+      '改变电源电压（选中电源，调节电压滑块），重复测量 3 次',
+      '分析数据，验证 I=U/R 关系，完成实验报告',
     ],
     equipmentList: ['battery', 'switch', 'resistor', 'ammeter', 'voltmeter', 'wire'],
   },
@@ -26,8 +29,16 @@ export const experiments: ExperimentRecord[] = [
     duration: 30,
     difficulty: 3,
     knowledgePoints: ['电路连接', '基尔霍夫定律', '串并联电阻计算'],
-    steps: [],
-    equipmentList: ['battery', 'switch', 'resistor', 'ammeter', 'voltmeter', 'wire'],
+    steps: [
+      '搭建串联电路：将两个电阻、电流表、电源串联连接',
+      '测量串联电路总电流和各电阻两端电压',
+      '记录数据，验证串联电路总电阻 R = R₁ + R₂',
+      '拆除电路，重新搭建并联电路：将两个电阻并联后接入电路',
+      '测量并联电路总电流和各支路电流',
+      '记录数据，验证并联电路 1/R = 1/R₁ + 1/R₂',
+      '对比串联和并联电路的特点，完成实验报告',
+    ],
+    equipmentList: ['battery', 'switch', 'resistor', 'ammeter', 'voltmeter', 'bulb', 'wire'],
   },
   {
     id: 'newton-law',
@@ -37,17 +48,203 @@ export const experiments: ExperimentRecord[] = [
     duration: 30,
     difficulty: 3,
     knowledgePoints: ['力', '质量', '加速度', 'F=ma'],
-    steps: [],
+    steps: [
+      '搭建实验装置：将小车放在水平轨道上，通过滑轮连接砝码',
+      '保持小车质量不变，改变拉力（增减砝码），测量加速度',
+      '记录不同拉力下的加速度数据（至少3组）',
+      '保持拉力不变，改变小车质量（添加配重），测量加速度',
+      '记录不同质量下的加速度数据（至少3组）',
+      '分析数据，验证 a = F/m 关系',
+      '绘制 a-F 和 a-1/m 图像，完成实验报告',
+    ],
     equipmentList: ['cart', 'pulley', 'weight', 'timer', 'ruler'],
+  },
+  {
+    id: 'refraction',
+    title: '光的折射定律',
+    subject: '物理',
+    gradeLevel: '初二 / 高一',
+    duration: 25,
+    difficulty: 2,
+    knowledgePoints: ['光的折射', '入射角', '折射角', '折射率', '斯涅尔定律'],
+    steps: [
+      '放置光源和半圆形玻璃砖，使光线从空气射入玻璃',
+      '调整入射角度，观察入射光线和折射光线',
+      '测量入射角 i 和折射角 r，记录数据',
+      '改变入射角（至少5个不同角度），重复测量',
+      '计算 sin(i)/sin(r) 的比值，验证折射率 n 为常数',
+      '观察光从玻璃射入空气时的全反射现象',
+      '分析数据，完成实验报告',
+    ],
+    equipmentList: ['light-source', 'glass-block', 'protractor', 'screen', 'wire'],
+  },
+  {
+    id: 'lens-imaging',
+    title: '凸透镜成像规律',
+    subject: '物理',
+    gradeLevel: '初二',
+    duration: 30,
+    difficulty: 3,
+    knowledgePoints: ['凸透镜', '焦距', '物距', '像距', '成像规律'],
+    steps: [
+      '将光源、凸透镜、光屏依次放置在光具座上',
+      '调整凸透镜位置，使物距 u > 2f，移动光屏找到清晰的像',
+      '记录物距 u、像距 v，观察像的性质（倒立/正立、放大/缩小、实像/虚像）',
+      '调整物距使 f < u < 2f，重复测量',
+      '调整物距使 u < f，观察虚像（无法在光屏上呈现）',
+      '总结凸透镜成像规律，完成实验报告',
+    ],
+    equipmentList: ['light-source', 'convex-lens', 'screen', 'ruler', 'wire'],
+  },
+  // ===== 化学实验 =====
+  {
+    id: 'acid-base-titration',
+    title: '酸碱中和滴定',
+    subject: '化学',
+    gradeLevel: '高一',
+    duration: 35,
+    difficulty: 3,
+    knowledgePoints: ['酸碱中和', '滴定', '指示剂', '物质的量浓度'],
+    steps: [
+      '准备滴定管：用蒸馏水洗涤后，用标准盐酸溶液润洗 2-3 次',
+      '装入标准盐酸溶液至滴定管，记录初始读数',
+      '用移液管准确量取 25.00mL NaOH 待测液于锥形瓶中',
+      '向锥形瓶中滴加 2-3 滴酚酞指示剂，溶液呈红色',
+      '缓慢滴加盐酸，边滴边摇动锥形瓶',
+      '当溶液由红色恰好变为无色且半分钟内不恢复，即为滴定终点',
+      '记录滴定管读数，重复滴定 2-3 次，计算 NaOH 浓度',
+    ],
+    equipmentList: ['burette', 'conical-flask', 'pipette', 'indicator', 'beaker', 'test-tube'],
+  },
+  {
+    id: 'electrolysis-water',
+    title: '电解水实验',
+    subject: '化学',
+    gradeLevel: '初三',
+    duration: 25,
+    difficulty: 2,
+    knowledgePoints: ['电解', '水的组成', '氢气', '氧气', '体积比 2:1'],
+    steps: [
+      '组装霍夫曼电解器，加入稀硫酸溶液',
+      '连接直流电源，正极接阳极，负极接阴极',
+      '接通电源，观察两极产生的气泡',
+      '记录阴极和阳极产生气体的体积',
+      '用燃着的木条检验阴极气体（氢气），观察爆鸣声',
+      '用带火星的木条检验阳极气体（氧气），观察复燃',
+      '验证 H₂:O₂ 体积比约为 2:1，完成实验报告',
+    ],
+    equipmentList: ['battery', 'electrolyzer', 'test-tube', 'beaker', 'wire'],
+  },
+  {
+    id: 'metal-activity',
+    title: '金属活动性顺序',
+    subject: '化学',
+    gradeLevel: '初三',
+    duration: 30,
+    difficulty: 2,
+    knowledgePoints: ['金属活动性', '置换反应', '金属与酸反应', '金属与盐溶液反应'],
+    steps: [
+      '取三支试管，分别加入稀盐酸',
+      '将镁条、锌粒、铜片分别放入三支试管中',
+      '观察并记录各试管中反应的剧烈程度和气泡产生情况',
+      '另取试管，加入硫酸铜溶液',
+      '将铁钉放入硫酸铜溶液中，观察现象',
+      '根据实验现象排列 Mg、Zn、Fe、Cu 的活动性顺序',
+      '总结金属活动性顺序表，完成实验报告',
+    ],
+    equipmentList: ['test-tube', 'beaker', 'metal-mg', 'metal-zn', 'metal-fe', 'metal-cu', 'acid-solution'],
+  },
+  {
+    id: 'gas-pressure-volume',
+    title: '气体压强与体积的关系',
+    subject: '物理',
+    gradeLevel: '高一',
+    duration: 25,
+    difficulty: 2,
+    knowledgePoints: ['玻意耳定律', '压强', '体积', '等温变化', 'PV=常数'],
+    steps: [
+      '连接注射器和压强传感器，确保密封良好',
+      '记录初始状态下的气体体积 V 和压强 P',
+      '缓慢压缩注射器活塞，减小气体体积',
+      '在不同体积下记录对应的压强值（至少6组）',
+      '缓慢拉伸活塞，增大气体体积，继续记录数据',
+      '绘制 P-V 图像和 P-1/V 图像',
+      '验证玻意耳定律 PV = 常数，完成实验报告',
+    ],
+    equipmentList: ['syringe', 'pressure-sensor', 'ruler', 'wire'],
+  },
+  {
+    id: 'concentration-reaction-rate',
+    title: '浓度对反应速率的影响',
+    subject: '化学',
+    gradeLevel: '高二',
+    duration: 30,
+    difficulty: 3,
+    knowledgePoints: ['反应速率', '浓度影响', '硫代硫酸钠', '沉淀反应'],
+    steps: [
+      '配制不同浓度的 Na₂S₂O₃ 溶液（0.1mol/L、0.2mol/L、0.3mol/L）',
+      '取三支试管，分别加入等体积不同浓度的 Na₂S₂O₃ 溶液',
+      '向每支试管中同时加入等体积、等浓度的稀硫酸',
+      '记录每支试管中出现浑浊（硫沉淀）所需的时间',
+      '比较不同浓度下的反应时间',
+      '分析浓度与反应速率的关系',
+      '绘制浓度-速率图像，完成实验报告',
+    ],
+    equipmentList: ['test-tube', 'beaker', 'stopwatch', 'na2s2o3-solution', 'acid-solution', 'wire'],
   },
 ]
 
 export const equipmentCatalog: Equipment[] = [
+  // 电源类
   { id: 'battery', name: '电源', category: '电源类', icon: '🔋', properties: { voltage: 3 }, width: 80, height: 50 },
+  
+  // 控制类
   { id: 'switch', name: '开关', category: '控制类', icon: '🔘', properties: { closed: 0 }, width: 60, height: 40 },
+  
+  // 元件类
   { id: 'resistor', name: '定值电阻', category: '元件类', icon: '⚡', properties: { resistance: 10 }, width: 80, height: 30 },
+  { id: 'bulb', name: '小灯泡', category: '元件类', icon: '💡', properties: { resistance: 5, brightness: 0 }, width: 50, height: 50 },
+  
+  // 测量类
   { id: 'ammeter', name: '电流表', category: '测量类', icon: '📊', properties: { range: 1 }, width: 70, height: 70 },
   { id: 'voltmeter', name: '电压表', category: '测量类', icon: '📊', properties: { range: 10 }, width: 70, height: 70 },
-  { id: 'bulb', name: '小灯泡', category: '元件类', icon: '💡', properties: { resistance: 5, brightness: 0 }, width: 50, height: 50 },
+  
+  // 连接类
   { id: 'wire', name: '导线', category: '连接类', icon: '〰️', properties: {}, width: 100, height: 10 },
+
+  // 力学器材
+  { id: 'cart', name: '小车', category: '力学类', icon: '🚗', properties: { mass: 0.5 }, width: 80, height: 40 },
+  { id: 'pulley', name: '滑轮', category: '力学类', icon: '⚙️', properties: {}, width: 40, height: 40 },
+  { id: 'weight', name: '砝码', category: '力学类', icon: '⚖️', properties: { mass: 0.1 }, width: 40, height: 50 },
+  { id: 'timer', name: '打点计时器', category: '力学类', icon: '⏱️', properties: { frequency: 50 }, width: 70, height: 50 },
+  { id: 'ruler', name: '刻度尺', category: '力学类', icon: '📏', properties: { length: 100 }, width: 120, height: 20 },
+
+  // 光学器材
+  { id: 'light-source', name: '光源', category: '光学类', icon: '🔦', properties: { wavelength: 550 }, width: 60, height: 40 },
+  { id: 'glass-block', name: '玻璃砖', category: '光学类', icon: '🧊', properties: { refractiveIndex: 1.5 }, width: 80, height: 60 },
+  { id: 'convex-lens', name: '凸透镜', category: '光学类', icon: '🔍', properties: { focalLength: 10 }, width: 40, height: 60 },
+  { id: 'protractor', name: '量角器', category: '光学类', icon: '📐', properties: {}, width: 80, height: 40 },
+  { id: 'screen', name: '光屏', category: '光学类', icon: '🖼️', properties: {}, width: 60, height: 80 },
+
+  // 化学器材
+  { id: 'beaker', name: '烧杯', category: '化学类', icon: '🥛', properties: { volume: 250 }, width: 60, height: 70 },
+  { id: 'test-tube', name: '试管', category: '化学类', icon: '🧪', properties: { volume: 15 }, width: 30, height: 80 },
+  { id: 'conical-flask', name: '锥形瓶', category: '化学类', icon: '⚗️', properties: { volume: 250 }, width: 60, height: 80 },
+  { id: 'burette', name: '滴定管', category: '化学类', icon: '📏', properties: { volume: 50, currentVolume: 50 }, width: 30, height: 100 },
+  { id: 'pipette', name: '移液管', category: '化学类', icon: '💧', properties: { volume: 25 }, width: 20, height: 80 },
+  { id: 'indicator', name: '指示剂', category: '化学类', icon: '🎨', properties: { type: 0 }, width: 40, height: 40 },
+  { id: 'electrolyzer', name: '电解器', category: '化学类', icon: '⚡', properties: {}, width: 80, height: 80 },
+  { id: 'stopwatch', name: '秒表', category: '化学类', icon: '⏱️', properties: { time: 0 }, width: 50, height: 50 },
+
+  // 化学试剂
+  { id: 'acid-solution', name: '稀硫酸', category: '试剂类', icon: '🧴', properties: { concentration: 1.0 }, width: 50, height: 60 },
+  { id: 'na2s2o3-solution', name: '硫代硫酸钠溶液', category: '试剂类', icon: '🧴', properties: { concentration: 0.1 }, width: 50, height: 60 },
+  { id: 'metal-mg', name: '镁条', category: '试剂类', icon: '🔩', properties: {}, width: 40, height: 10 },
+  { id: 'metal-zn', name: '锌粒', category: '试剂类', icon: '🔩', properties: {}, width: 30, height: 20 },
+  { id: 'metal-fe', name: '铁钉', category: '试剂类', icon: '🔩', properties: {}, width: 40, height: 10 },
+  { id: 'metal-cu', name: '铜片', category: '试剂类', icon: '🔩', properties: {}, width: 40, height: 10 },
+
+  // 传感器
+  { id: 'pressure-sensor', name: '压强传感器', category: '传感器类', icon: '📡', properties: { pressure: 101.3 }, width: 60, height: 40 },
+  { id: 'syringe', name: '注射器', category: '传感器类', icon: '💉', properties: { volume: 50 }, width: 40, height: 80 },
 ]
