@@ -1,16 +1,30 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
-import { experiments } from '../data/experiments'
+import { experiments as localExperiments } from '../data/experiments'
+import { experimentsApi } from '../api'
 import { useLabStore } from '../store/labStore'
 import { useResponsive } from '../hooks/useResponsive'
 
 export const StudentDashboard: React.FC = () => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const [experiments, setExperiments] = useState(localExperiments)
   const setCurrentExperiment = useLabStore((state) => state.setCurrentExperiment)
   const { isMobile } = useResponsive()
   const [showMenu, setShowMenu] = useState(false)
+
+  // Fetch experiments from API
+  useEffect(() => {
+    experimentsApi.getAll()
+      .then((data) => {
+        if (data.length > 0) setExperiments(data)
+      })
+      .catch(() => {
+        // Fallback to local data if API is unavailable
+        setExperiments(localExperiments)
+      })
+  }, [])
 
   const handleSelectExperiment = (id: string) => {
     setCurrentExperiment(id)

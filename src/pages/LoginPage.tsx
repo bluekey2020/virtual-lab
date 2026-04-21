@@ -12,8 +12,10 @@ export const LoginPage: React.FC = () => {
   const [grade, setGrade] = useState('')
   const [classNo, setClassNo] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [apiError, setApiError] = useState('')
 
   const login = useAuthStore((state) => state.login)
+  const isLoading = useAuthStore((state) => state.isLoading)
   const navigate = useNavigate()
 
   const validate = (): boolean => {
@@ -25,21 +27,23 @@ export const LoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
 
-    const user = {
-      id: `user_${Date.now()}`,
-      name: name.trim(),
-      role,
-      schoolId: schoolId.trim(),
-      grade: grade || undefined,
-      classNo: classNo || undefined,
+    setApiError('')
+    try {
+      await login({
+        name: name.trim(),
+        schoolId: schoolId.trim(),
+        role,
+        grade: grade || undefined,
+        classNo: classNo || undefined,
+      })
+      navigate(role === 'teacher' ? '/teacher' : '/')
+    } catch (err: any) {
+      setApiError(err.message || '登录失败，请重试')
     }
-
-    login(user)
-    navigate(role === 'teacher' ? '/teacher' : '/')
   }
 
   return (
@@ -173,11 +177,18 @@ export const LoginPage: React.FC = () => {
               </>
             )}
 
+            {apiError && (
+              <div className="p-3 bg-red-50 rounded-lg border border-red-200 mb-4">
+                <p className="text-xs text-red-700">{apiError}</p>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm"
+              disabled={isLoading}
+              className="w-full py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isRegister ? '注册并登录' : '登录'}
+              {isLoading ? '登录中...' : isRegister ? '注册并登录' : '登录'}
             </button>
           </form>
 
