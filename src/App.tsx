@@ -1,41 +1,78 @@
-import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ExperimentList } from './components/ExperimentList'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from './store/authStore'
+import { LoginPage } from './pages/LoginPage'
+import { StudentDashboard } from './pages/StudentDashboard'
 import { ExperimentWorkbench } from './components/ExperimentWorkbench'
-import { useLabStore } from './store/labStore'
+import { TeacherDashboard } from './pages/TeacherDashboard'
+import { TeacherTaskManager } from './pages/TeacherTaskManager'
+import { TeacherGrading } from './pages/TeacherGrading'
+import { StudentTasks } from './pages/StudentTasks'
+import { StudentReports } from './pages/StudentReports'
 
 const queryClient = new QueryClient()
 
+function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'student' | 'teacher' }) {
+  const { isAuthenticated, user } = useAuthStore()
+  
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (requiredRole && user?.role !== requiredRole) return <Navigate to="/" replace />
+  
+  return <>{children}</>
+}
+
 function App() {
-  const [view, setView] = useState<'list' | 'workbench'>('list')
-  const setCurrentExperiment = useLabStore((state) => state.setCurrentExperiment)
-
-  const handleSelectExperiment = (id: string) => {
-    setCurrentExperiment(id)
-    setView('workbench')
-  }
-
-  const handleBack = () => {
-    setView('list')
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="h-screen">
-        {view === 'list' ? (
-          <ExperimentList onSelect={handleSelectExperiment} />
-        ) : (
-          <div className="relative">
-            <button
-              onClick={handleBack}
-              className="absolute top-4 left-4 z-30 px-3 py-1.5 text-sm font-medium rounded-lg bg-white/90 backdrop-blur-sm border border-gray-200 text-gray-600 hover:bg-white hover:text-gray-800 transition-colors shadow-sm"
-            >
-              ← 返回实验列表
-            </button>
-            <ExperimentWorkbench />
-          </div>
-        )}
-      </div>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          
+          <Route path="/" element={
+            <ProtectedRoute requiredRole="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/experiment/:id" element={
+            <ProtectedRoute requiredRole="student">
+              <ExperimentWorkbench />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/my-tasks" element={
+            <ProtectedRoute requiredRole="student">
+              <StudentTasks />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/my-reports" element={
+            <ProtectedRoute requiredRole="student">
+              <StudentReports />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/teacher" element={
+            <ProtectedRoute requiredRole="teacher">
+              <TeacherDashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/teacher/tasks" element={
+            <ProtectedRoute requiredRole="teacher">
+              <TeacherTaskManager />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/teacher/grading" element={
+            <ProtectedRoute requiredRole="teacher">
+              <TeacherGrading />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   )
 }
