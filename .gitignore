@@ -1,0 +1,22 @@
+# 微信小程序
+project.private.config.json
+
+# 依赖
+node_modules/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# 压缩包
+*.zip
+
+# 第三方工具目录（独立项目，不纳入版本管理）
+career-ops-main/
