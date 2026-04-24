@@ -1,0 +1,99 @@
+<view class="container">
+  <!-- 简历状态提示 -->
+  <view class="card" wx:if="{{!resume || !resume.name}}" style="background-color:rgba(243,139,168,0.1);border:2rpx solid var(--red);">
+    <view class="flex-between">
+      <view>
+        <text style="color:var(--red);font-weight:600;">请先完善简历</text>
+        <text class="text-subtext text-small" style="display:block;margin-top:8rpx;">完善简历后才能获得准确的匹配分析</text>
+      </view>
+      <view class="btn btn-primary" style="padding:16rpx 32rpx;font-size:26rpx;" bindtap="goToResume">去完善</view>
+    </view>
+  </view>
+
+  <!-- 筛选 -->
+  <scroll-view class="filter-bar" scroll-x enable-flex>
+    <view class="filter-item {{activeFilter === item.key ? 'filter-active' : ''}}" wx:for="{{filterOptions}}" wx:key="key" bindtap="switchFilter" data-key="{{item.key}}">
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <!-- 统计 -->
+  <view class="stats-grid" style="margin-bottom:16rpx;">
+    <view class="stat-card">
+      <text class="stat-num text-green">{{jobs.filter(j=>j.score>=80).length}}</text>
+      <text class="stat-label">高匹配</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num text-yellow">{{jobs.filter(j=>j.score>=60&&j.score<80).length}}</text>
+      <text class="stat-label">中匹配</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num text-red">{{jobs.filter(j=>j.score<60).length}}</text>
+      <text class="stat-label">低匹配</text>
+    </view>
+  </view>
+
+  <view class="text-subtext text-small" style="text-align:center;margin-bottom:16rpx;" wx:if="{{matchThreshold > 0}}">
+    当前阈值 ≥{{matchThreshold}}%，<text style="color:var(--blue);" bindtap="goToSettings">去设置</text>调整
+  </view>
+
+  <!-- 匹配列表 -->
+  <view class="match-list" wx:if="{{filteredJobs.length > 0}}">
+    <view class="match-card" wx:for="{{filteredJobs}}" wx:key="id">
+      <view class="match-header" bindtap="toggleExpand" data-id="{{item.id}}">
+        <view class="match-info">
+          <text class="match-company">{{item.company}}</text>
+          <text class="match-title">{{item.title}}</text>
+        </view>
+        <view class="match-score-wrap">
+          <view class="score-circle {{item.score >= 80 ? 'score-high' : item.score >= 60 ? 'score-mid' : 'score-low'}}">
+            {{item.score}}
+          </view>
+          <text class="text-small" style="color:{{item.matchColor}};text-align:center;display:block;margin-top:4rpx;">{{item.matchLabel}}级</text>
+        </view>
+      </view>
+
+      <view class="match-meta">
+        <text class="tag tag-blue">{{item.location}}</text>
+        <text class="tag tag-peach">{{item.salaryMin}}-{{item.salaryMax}}{{item.salaryUnit}}</text>
+        <text class="tag {{item.score >= 80 ? 'tag-green' : item.score >= 60 ? 'tag-yellow' : 'tag-red'}}">{{item.matchLabel}}级匹配</text>
+      </view>
+
+      <!-- 展开详情 -->
+      <view wx:if="{{expandedJobId === item.id}}" style="margin-top:20rpx;padding-top:20rpx;border-top:2rpx solid var(--surface1);">
+        <view class="match-bar-item" wx:for="{{[item.match.details.skill, item.match.details.title, item.match.details.salary, item.match.details.location, item.match.details.keyword]}}" wx:key="label" wx:for-item="detail">
+          <text class="match-bar-label">{{detail.label}}</text>
+          <view class="match-bar-track">
+            <view class="match-bar-fill {{detail.score >= 80 ? 'fill-high' : detail.score >= 60 ? 'fill-mid' : 'fill-low'}}" style="width:{{detail.score}}%;"></view>
+          </view>
+          <text class="match-bar-score">{{detail.score}}</text>
+        </view>
+
+        <view class="section-title">已匹配技能</view>
+        <view class="flex-wrap">
+          <text class="tag tag-green" wx:for="{{item.match.matchedSkills}}" wx:key="*this">{{item}}</text>
+          <text wx:if="{{item.match.matchedSkills.length === 0}}" class="text-subtext text-small">暂无</text>
+        </view>
+
+        <view class="section-title">缺失技能</view>
+        <view class="flex-wrap">
+          <text class="tag tag-red" wx:for="{{item.match.missingSkills}}" wx:key="*this">{{item}}</text>
+          <text wx:if="{{item.match.missingSkills.length === 0}}" class="text-subtext text-small">暂无</text>
+        </view>
+
+        <view class="btn btn-secondary mt-3" style="width:100%;" bindtap="goToJobDetail" data-id="{{item.id}}">查看职位详情</view>
+      </view>
+
+      <view wx:else style="text-align:center;margin-top:16rpx;">
+        <text class="text-subtext text-small" style="color:var(--overlay0);">点击展开匹配详情</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredJobs.length === 0}}">
+    <text class="empty-icon">🎯</text>
+    <text>暂无匹配结果</text>
+    <text class="text-subtext text-small mt-2">尝试调整筛选条件或添加更多职位</text>
+  </view>
+</view>

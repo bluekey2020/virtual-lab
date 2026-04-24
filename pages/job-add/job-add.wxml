@@ -1,0 +1,176 @@
+<view class="container">
+  <!-- 查看模式 -->
+  <block wx:if="{{mode === 'view'}}">
+    <view class="card">
+      <view class="flex-between" style="margin-bottom:20rpx;">
+        <view>
+          <text class="text-large" style="font-weight:600;">{{job.company}}</text>
+          <view style="margin-top:8rpx;">
+            <text class="tag {{statusTagColor}}" bindtap="changeStatus">{{statusOptions[statusIndex].label}}</text>
+            <text class="tag tag-blue">{{job.location}}</text>
+            <text class="tag tag-peach">{{job.salaryMin}}-{{job.salaryMax}}{{job.salaryUnit}}</text>
+          </view>
+        </view>
+        <view class="score-circle {{matchResult.total >= 80 ? 'score-high' : matchResult.total >= 60 ? 'score-mid' : 'score-low'}}">
+          {{matchResult.total}}
+        </view>
+      </view>
+      <view class="text-subtext text-small">{{job.department}} · {{job.type}}</view>
+    </view>
+
+    <!-- 匹配分析 -->
+    <view class="card" wx:if="{{matchResult}}">
+      <view class="card-title" bindtap="toggleMatchDetail">
+        <text class="card-title-icon">🎯</text>
+        <text>匹配分析</text>
+        <text style="margin-left:auto;color:var(--blue);font-size:24rpx;">{{showMatchDetail ? '收起' : '展开'}}</text>
+      </view>
+      <view wx:if="{{!showMatchDetail}}">
+        <view class="match-bar-item" wx:for="{{[matchResult.details.skill, matchResult.details.title, matchResult.details.salary, matchResult.details.location, matchResult.details.keyword]}}" wx:key="label">
+          <text class="match-bar-label">{{item.label}}</text>
+          <view class="match-bar-track">
+            <view class="match-bar-fill {{item.score >= 80 ? 'fill-high' : item.score >= 60 ? 'fill-mid' : 'fill-low'}}" style="width:{{item.score}}%;"></view>
+          </view>
+          <text class="match-bar-score">{{item.score}}</text>
+        </view>
+      </view>
+      <view wx:else>
+        <view class="match-bar-item" wx:for="{{[matchResult.details.skill, matchResult.details.title, matchResult.details.salary, matchResult.details.location, matchResult.details.keyword]}}" wx:key="label">
+          <text class="match-bar-label">{{item.label}}</text>
+          <view class="match-bar-track">
+            <view class="match-bar-fill {{item.score >= 80 ? 'fill-high' : item.score >= 60 ? 'fill-mid' : 'fill-low'}}" style="width:{{item.score}}%;"></view>
+          </view>
+          <text class="match-bar-score">{{item.score}}</text>
+        </view>
+        <view class="section-title">已匹配技能</view>
+        <view class="flex-wrap">
+          <text class="tag tag-green" wx:for="{{matchResult.matchedSkills}}" wx:key="*this">{{item}}</text>
+          <text wx:if="{{matchResult.matchedSkills.length === 0}}" class="text-subtext text-small">暂无匹配技能</text>
+        </view>
+        <view class="section-title">缺失技能</view>
+        <view class="flex-wrap">
+          <text class="tag tag-red" wx:for="{{matchResult.missingSkills}}" wx:key="*this">{{item}}</text>
+          <text wx:if="{{matchResult.missingSkills.length === 0}}" class="text-subtext text-small">暂无缺失技能</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 职位描述 -->
+    <view class="card" wx:if="{{job.jd}}">
+      <view class="card-title">
+        <text class="card-title-icon">📄</text>
+        <text>职位描述</text>
+      </view>
+      <text style="color:var(--subtext1);font-size:28rpx;line-height:1.8;white-space:pre-wrap;">{{job.jd}}</text>
+    </view>
+
+    <!-- 技能要求 -->
+    <view class="card" wx:if="{{job.requirements.length > 0}}">
+      <view class="card-title">
+        <text class="card-title-icon">🛠</text>
+        <text>技能要求</text>
+      </view>
+      <view class="flex-wrap">
+        <text class="tag tag-blue" wx:for="{{job.requirements}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+
+    <!-- 福利待遇 -->
+    <view class="card" wx:if="{{job.benefits.length > 0}}">
+      <view class="card-title">
+        <text class="card-title-icon">🎁</text>
+        <text>福利待遇</text>
+      </view>
+      <view class="flex-wrap">
+        <text class="tag tag-mauve" wx:for="{{job.benefits}}" wx:key="*this">{{item}}</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="flex" style="gap:20rpx;margin-top:40rpx;">
+      <view class="btn btn-secondary" style="flex:1;" bindtap="toggleEdit">编辑</view>
+      <view class="btn" style="flex:1;background-color:var(--red);color:var(--crust);" bindtap="deleteJob">删除</view>
+    </view>
+  </block>
+
+  <!-- 添加/编辑模式 -->
+  <block wx:else>
+    <view class="card">
+      <view class="card-title">
+        <text class="card-title-icon">🏢</text>
+        <text>基本信息</text>
+      </view>
+      <input class="input" placeholder="公司名称 *" value="{{job.company}}" data-field="company" bindinput="onInput" />
+      <input class="input" placeholder="职位名称 *" value="{{job.title}}" data-field="title" bindinput="onInput" />
+      <input class="input" placeholder="部门" value="{{job.department}}" data-field="department" bindinput="onInput" />
+      <input class="input" placeholder="工作地点" value="{{job.location}}" data-field="location" bindinput="onInput" />
+      <view class="flex" style="gap:16rpx;">
+        <input class="input" style="flex:1;" type="number" placeholder="最低薪资(k)" value="{{job.salaryMin}}" data-field="salaryMin" bindinput="onSalaryInput" />
+        <input class="input" style="flex:1;" type="number" placeholder="最高薪资(k)" value="{{job.salaryMax}}" data-field="salaryMax" bindinput="onSalaryInput" />
+      </view>
+      <picker bindchange="onTypeChange" value="{{job.type==='全职'?0:job.type==='兼职'?1:job.type==='实习'?2:3}}" range="{{['全职','兼职','实习','外包']}}">
+        <view class="input" style="display:flex;justify-content:space-between;align-items:center;">
+          <text>{{job.type}}</text>
+          <text style="color:var(--overlay0);">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="card">
+      <view class="card-title">
+        <text class="card-title-icon">📄</text>
+        <text>职位描述</text>
+      </view>
+      <textarea class="textarea" placeholder="填写职位描述、岗位职责..." value="{{job.jd}}" data-field="jd" bindinput="onInput" />
+    </view>
+
+    <view class="card">
+      <view class="card-title">
+        <text class="card-title-icon">🛠</text>
+        <text>技能要求</text>
+      </view>
+      <view class="flex-wrap" wx:if="{{job.requirements.length}}">
+        <view class="tag tag-blue" wx:for="{{job.requirements}}" wx:key="*this">
+          {{item}}
+          <text style="margin-left:8rpx;color:var(--red);" bindtap="removeRequirement" data-index="{{index}}">x</text>
+        </view>
+      </view>
+      <view class="flex mt-2" style="gap:12rpx;">
+        <input class="input" style="flex:1;margin-bottom:0;" placeholder="输入技能要求" value="{{newRequirement}}" bindinput="onRequirementInput" />
+        <view class="btn btn-primary" style="padding:16rpx 32rpx;" bindtap="addRequirement">添加</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">
+        <text class="card-title-icon">🎁</text>
+        <text>福利待遇</text>
+      </view>
+      <view class="flex-wrap" wx:if="{{job.benefits.length}}">
+        <view class="tag tag-mauve" wx:for="{{job.benefits}}" wx:key="*this">
+          {{item}}
+          <text style="margin-left:8rpx;color:var(--red);" bindtap="removeBenefit" data-index="{{index}}">x</text>
+        </view>
+      </view>
+      <view class="flex mt-2" style="gap:12rpx;">
+        <input class="input" style="flex:1;margin-bottom:0;" placeholder="输入福利项" value="{{newBenefit}}" bindinput="onBenefitInput" />
+        <view class="btn btn-primary" style="padding:16rpx 32rpx;" bindtap="addBenefit">添加</view>
+      </view>
+    </view>
+
+    <view class="card" wx:if="{{mode === 'edit'}}">
+      <view class="card-title">
+        <text class="card-title-icon">📌</text>
+        <text>投递状态</text>
+      </view>
+      <picker bindchange="pickStatus" value="{{statusIndex}}" range="{{statusOptions}}" range-key="label">
+        <view class="input" style="display:flex;justify-content:space-between;align-items:center;">
+          <text>{{statusOptions[statusIndex].label}}</text>
+          <text style="color:var(--overlay0);">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="btn btn-primary" style="margin-top:40rpx;" bindtap="saveJob">{{mode === 'add' ? '添加职位' : '保存修改'}}</view>
+  </block>
+</view>

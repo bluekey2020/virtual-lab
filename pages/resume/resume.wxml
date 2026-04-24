@@ -1,0 +1,152 @@
+<view class="container">
+  <view class="flex-between" style="margin-bottom:24rpx;">
+    <text class="text-large" style="font-weight:600;">我的简历</text>
+    <view class="btn {{isEditing ? 'btn-success' : 'btn-secondary'}}" style="padding:12rpx 32rpx;font-size:26rpx;" bindtap="{{isEditing ? 'saveResume' : 'toggleEdit'}}">
+      {{isEditing ? '保存' : '编辑'}}
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">👤</text>
+      <text>基本信息</text>
+    </view>
+    <view wx:if="{{!isEditing}}">
+      <view class="info-row" wx:if="{{resume.name}}"><text class="info-label">姓名</text><text class="info-value">{{resume.name}}</text></view>
+      <view class="info-row" wx:if="{{resume.phone}}"><text class="info-label">电话</text><text class="info-value">{{resume.phone}}</text></view>
+      <view class="info-row" wx:if="{{resume.email}}"><text class="info-label">邮箱</text><text class="info-value">{{resume.email}}</text></view>
+      <view class="info-row" wx:if="{{resume.title}}"><text class="info-label">当前职位</text><text class="info-value">{{resume.title}}</text></view>
+      <view class="info-row" wx:if="{{resume.targetSalary && resume.targetSalary.max}}"><text class="info-label">期望薪资</text><text class="info-value">{{resume.targetSalary.min}}-{{resume.targetSalary.max}}k</text></view>
+      <view wx:if="{{!resume.name}}" class="text-subtext text-small">暂无基本信息，点击编辑添加</view>
+    </view>
+    <view wx:else>
+      <input class="input" placeholder="姓名" value="{{resume.name}}" data-field="name" bindinput="onInput" />
+      <input class="input" placeholder="电话" value="{{resume.phone}}" data-field="phone" bindinput="onInput" />
+      <input class="input" placeholder="邮箱" value="{{resume.email}}" data-field="email" bindinput="onInput" />
+      <input class="input" placeholder="当前职位/头衔" value="{{resume.title}}" data-field="title" bindinput="onInput" />
+      <view class="flex" style="gap:16rpx;">
+        <input class="input" style="flex:1;" type="number" placeholder="最低期望(k)" value="{{resume.targetSalary.min}}" data-field="min" bindinput="onSalaryInput" />
+        <input class="input" style="flex:1;" type="number" placeholder="最高期望(k)" value="{{resume.targetSalary.max}}" data-field="max" bindinput="onSalaryInput" />
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">📝</text>
+      <text>个人简介</text>
+    </view>
+    <view wx:if="{{!isEditing}}">
+      <text wx:if="{{resume.summary}}" style="color:var(--subtext1);font-size:28rpx;line-height:1.8;">{{resume.summary}}</text>
+      <text wx:else class="text-subtext text-small">暂无简介</text>
+    </view>
+    <textarea wx:else class="textarea" placeholder="简要介绍你的专业背景、核心优势和职业目标..." value="{{resume.summary}}" data-field="summary" bindinput="onInput" />
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">🛠</text>
+      <text>技能标签</text>
+    </view>
+    <view class="flex-wrap" wx:if="{{resume.skills && resume.skills.length}}">
+      <view class="tag tag-blue" wx:for="{{resume.skills}}" wx:key="index">
+        {{item}}
+        <text wx:if="{{isEditing}}" style="margin-left:8rpx;color:var(--red);" bindtap="removeSkill" data-index="{{index}}">x</text>
+      </view>
+    </view>
+    <view wx:else class="text-subtext text-small">暂无技能标签</view>
+    <view wx:if="{{isEditing}}" class="flex mt-2" style="gap:12rpx;">
+      <input class="input" style="flex:1;margin-bottom:0;" placeholder="输入技能，如 React" value="{{newSkill}}" bindinput="onSkillInput" />
+      <view class="btn btn-primary" style="padding:16rpx 32rpx;" bindtap="addSkill">添加</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">🎯</text>
+      <text>目标职位</text>
+    </view>
+    <view class="flex-wrap" wx:if="{{resume.targetRoles && resume.targetRoles.length}}">
+      <view class="tag tag-green" wx:for="{{resume.targetRoles}}" wx:key="index">
+        {{item}}
+        <text wx:if="{{isEditing}}" style="margin-left:8rpx;color:var(--red);" bindtap="removeRole" data-index="{{index}}">x</text>
+      </view>
+    </view>
+    <view wx:else class="text-subtext text-small">暂无目标职位</view>
+    <view wx:if="{{isEditing}}" class="flex mt-2" style="gap:12rpx;">
+      <input class="input" style="flex:1;margin-bottom:0;" placeholder="输入目标职位" value="{{newRole}}" bindinput="onRoleInput" />
+      <view class="btn btn-primary" style="padding:16rpx 32rpx;" bindtap="addRole">添加</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">📍</text>
+      <text>目标城市</text>
+    </view>
+    <view class="flex-wrap" wx:if="{{resume.targetCities && resume.targetCities.length}}">
+      <view class="tag tag-peach" wx:for="{{resume.targetCities}}" wx:key="index">
+        {{item}}
+        <text wx:if="{{isEditing}}" style="margin-left:8rpx;color:var(--red);" bindtap="removeCity" data-index="{{index}}">x</text>
+      </view>
+    </view>
+    <view wx:else class="text-subtext text-small">暂无目标城市</view>
+    <view wx:if="{{isEditing}}" class="flex mt-2" style="gap:12rpx;">
+      <input class="input" style="flex:1;margin-bottom:0;" placeholder="输入目标城市" value="{{newCity}}" bindinput="onCityInput" />
+      <view class="btn btn-primary" style="padding:16rpx 32rpx;" bindtap="addCity">添加</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">💼</text>
+      <text>工作经历</text>
+    </view>
+    <view wx:if="{{resume.experience && resume.experience.length}}">
+      <view class="exp-item" wx:for="{{resume.experience}}" wx:key="index">
+        <view class="flex-between">
+          <view>
+            <text style="font-weight:600;color:var(--text);font-size:30rpx;">{{item.title}}</text>
+            <text style="color:var(--subtext0);font-size:26rpx;display:block;margin-top:4rpx;">{{item.company}} · {{item.duration}}</text>
+          </view>
+          <text wx:if="{{isEditing}}" style="color:var(--red);font-size:24rpx;padding:8rpx;" bindtap="removeExperience" data-index="{{index}}">删除</text>
+        </view>
+        <text wx:if="{{item.description}}" style="color:var(--subtext1);font-size:26rpx;line-height:1.6;margin-top:12rpx;display:block;">{{item.description}}</text>
+      </view>
+    </view>
+    <view wx:else class="text-subtext text-small">暂无工作经历</view>
+    <view wx:if="{{isEditing}}" style="margin-top:20rpx;padding-top:20rpx;border-top:2rpx solid var(--surface1);">
+      <input class="input" placeholder="公司名称" value="{{expCompany}}" data-field="expCompany" bindinput="onExpInput" />
+      <input class="input" placeholder="职位名称" value="{{expTitle}}" data-field="expTitle" bindinput="onExpInput" />
+      <input class="input" placeholder="时间段，如 2021.06 - 至今" value="{{expDuration}}" data-field="expDuration" bindinput="onExpInput" />
+      <textarea class="textarea" placeholder="工作描述..." value="{{expDesc}}" data-field="expDesc" bindinput="onExpInput" />
+      <view class="btn btn-primary" bindtap="addExperience">添加工作经历</view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">🎓</text>
+      <text>教育经历</text>
+    </view>
+    <view wx:if="{{resume.education && resume.education.length}}">
+      <view class="exp-item" wx:for="{{resume.education}}" wx:key="index">
+        <view class="flex-between">
+          <view>
+            <text style="font-weight:600;color:var(--text);font-size:30rpx;">{{item.school}}</text>
+            <text style="color:var(--subtext0);font-size:26rpx;display:block;margin-top:4rpx;">{{item.major}} · {{item.degree}} · {{item.duration}}</text>
+          </view>
+          <text wx:if="{{isEditing}}" style="color:var(--red);font-size:24rpx;padding:8rpx;" bindtap="removeEducation" data-index="{{index}}">删除</text>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="text-subtext text-small">暂无教育经历</view>
+    <view wx:if="{{isEditing}}" style="margin-top:20rpx;padding-top:20rpx;border-top:2rpx solid var(--surface1);">
+      <input class="input" placeholder="学校名称" value="{{eduSchool}}" data-field="eduSchool" bindinput="onEduInput" />
+      <input class="input" placeholder="专业" value="{{eduMajor}}" data-field="eduMajor" bindinput="onEduInput" />
+      <input class="input" placeholder="学历" value="{{eduDegree}}" data-field="eduDegree" bindinput="onEduInput" />
+      <input class="input" placeholder="时间段，如 2015.09 - 2019.06" value="{{eduDuration}}" data-field="eduDuration" bindinput="onEduInput" />
+      <view class="btn btn-primary" bindtap="addEducation">添加教育经历</view>
+    </view>
+  </view>
+</view>

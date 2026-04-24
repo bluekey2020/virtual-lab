@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/resume/resume",
+    "pages/jobs/jobs",
+    "pages/job-add/job-add",
+    "pages/match/match",
+    "pages/settings/settings"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1e1e2e",
+    "navigationBarTitleText": "CareerMatch",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#6c7086",
+    "selectedColor": "#89b4fa",
+    "backgroundColor": "#1e1e2e",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/jobs/jobs",
+        "text": "职位",
+        "iconPath": "images/job.png",
+        "selectedIconPath": "images/job-active.png"
+      },
+      {
+        "pagePath": "pages/resume/resume",
+        "text": "简历",
+        "iconPath": "images/resume.png",
+        "selectedIconPath": "images/resume-active.png"
+      },
+      {
+        "pagePath": "pages/match/match",
+        "text": "匹配",
+        "iconPath": "images/match.png",
+        "selectedIconPath": "images/match-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

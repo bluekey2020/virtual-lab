@@ -1,0 +1,30 @@
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 2rpx solid var(--surface1);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: var(--subtext0);
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: var(--text);
+}
+
+.exp-item {
+  padding: 20rpx 0;
+  border-bottom: 2rpx solid var(--surface1);
+}
+
+.exp-item:last-child {
+  border-bottom: none;
+}

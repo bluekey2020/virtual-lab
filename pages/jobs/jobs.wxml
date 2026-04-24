@@ -1,0 +1,52 @@
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索公司、职位、地点..." value="{{searchKeyword}}" bindinput="onSearchInput" />
+      <text wx:if="{{searchKeyword}}" class="search-clear" bindtap="clearSearch">✕</text>
+    </view>
+    <view class="btn btn-primary" style="padding:20rpx 28rpx;font-size:26rpx;white-space:nowrap;" bindtap="addJob">+ 添加</view>
+  </view>
+
+  <!-- 状态筛选 -->
+  <scroll-view class="filter-bar" scroll-x enable-flex>
+    <view class="filter-item {{activeFilter === item.key ? 'filter-active' : ''}}" wx:for="{{statusFilters}}" wx:key="key" bindtap="switchFilter" data-key="{{item.key}}">
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <!-- 职位列表 -->
+  <view class="job-list" wx:if="{{filteredJobs.length > 0}}">
+    <view class="job-card" wx:for="{{filteredJobs}}" wx:key="id" bindtap="goToJobDetail" data-id="{{item.id}}" bindlongpress="onLongPress" data-id="{{item.id}}">
+      <view class="job-header">
+        <view class="job-info">
+          <text class="job-company">{{item.company}}</text>
+          <text class="job-title">{{item.title}}</text>
+        </view>
+        <view class="score-circle {{item.score >= 80 ? 'score-high' : item.score >= 60 ? 'score-mid' : 'score-low'}}" style="width:90rpx;height:90rpx;font-size:32rpx;">
+          {{item.score}}
+        </view>
+      </view>
+      <view class="job-meta">
+        <text class="tag {{item.statusInfo.color}}">{{item.statusInfo.label}}</text>
+        <text class="tag tag-blue">{{item.location}}</text>
+        <text class="tag tag-peach">{{item.salaryMin}}-{{item.salaryMax}}{{item.salaryUnit}}</text>
+        <text class="tag tag-mauve">{{item.matchLabel}}级</text>
+      </view>
+      <view class="job-date">
+        <text class="text-subtext text-small">{{item.department}}</text>
+        <text class="text-subtext text-small">{{item.type}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredJobs.length === 0}}">
+    <text class="empty-icon">📭</text>
+    <text wx:if="{{searchKeyword || activeFilter !== 'all'}}">没有找到匹配的职位</text>
+    <text wx:else>还没有添加任何职位</text>
+    <text class="text-subtext text-small mt-2" wx:if="{{!searchKeyword && activeFilter === 'all'}}">点击右上角添加你的第一个职位</text>
+    <view class="btn btn-primary mt-3" style="width:300rpx;" wx:if="{{!searchKeyword && activeFilter === 'all'}}" bindtap="addJob">添加职位</view>
+  </view>
+</view>

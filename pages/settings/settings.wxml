@@ -1,0 +1,71 @@
+<view class="container">
+  <text class="text-large" style="font-weight:600;margin-bottom:24rpx;display:block;">设置</text>
+
+  <!-- 匹配设置 -->
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">🎯</text>
+      <text>匹配设置</text>
+    </view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-label">匹配阈值</text>
+        <text class="setting-desc">只显示匹配度高于此值的职位推荐</text>
+      </view>
+      <text class="setting-value">{{settings.matchThreshold}}%</text>
+    </view>
+    <slider min="0" max="100" value="{{settings.matchThreshold}}" activeColor="#89b4fa" backgroundColor="#313244" block-color="#89b4fa" block-size="20" bindchange="onThresholdChange" />
+
+    <view class="setting-item" style="margin-top:20rpx;">
+      <view class="setting-info">
+        <text class="setting-label">自动匹配</text>
+        <text class="setting-desc">打开页面时自动计算匹配度</text>
+      </view>
+      <switch checked="{{settings.autoMatch}}" color="#89b4fa" bindchange="onAutoMatchChange" />
+    </view>
+  </view>
+
+  <!-- 数据管理 -->
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">💾</text>
+      <text>数据管理</text>
+    </view>
+
+    <view class="menu-item" bindtap="resetDemoData">
+      <text>🔄 重置演示数据</text>
+      <text style="color:var(--overlay0);font-size:24rpx;">恢复默认示例数据</text>
+    </view>
+
+    <view class="menu-item" bindtap="clearJobsOnly">
+      <text>🗑 清空职位数据</text>
+      <text style="color:var(--overlay0);font-size:24rpx;">保留简历，仅删除职位</text>
+    </view>
+
+    <view class="menu-item" bindtap="clearAllData" style="border-bottom:none;">
+      <text style="color:var(--red);">⚠️ 清除所有数据</text>
+      <text style="color:var(--overlay0);font-size:24rpx;">删除所有数据，不可恢复</text>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">ℹ️</text>
+      <text>关于</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">应用名称</text>
+      <text class="info-value">CareerMatch</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">版本</text>
+      <text class="info-value">{{version}}</text>
+    </view>
+    <view class="info-row">
+      <text class="info-label">功能</text>
+      <text class="info-value">简历管理 · 职位追踪 · 智能匹配</text>
+    </view>
+  </view>
+</view>

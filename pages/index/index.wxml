@@ -1,0 +1,88 @@
+<view class="container">
+  <view class="welcome-section" wx:if="{{resume && resume.name}}">
+    <view class="welcome-text">
+      <text class="welcome-title">你好，{{resume.name}}</text>
+      <text class="welcome-subtitle">今天有 {{stats.pendingJobs}} 个职位待处理</text>
+    </view>
+    <view class="avatar">{{resume.name[0]}}</view>
+  </view>
+
+  <view class="welcome-section" wx:else>
+    <view class="welcome-text">
+      <text class="welcome-title">欢迎使用 CareerMatch</text>
+      <text class="welcome-subtitle">请先完善你的简历，获取精准职位推荐</text>
+    </view>
+    <view class="avatar" bindtap="goToResume">?</view>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-card" bindtap="goToJobs">
+      <text class="stat-num">{{stats.totalJobs}}</text>
+      <text class="stat-label">职位总数</text>
+    </view>
+    <view class="stat-card" bindtap="goToMatch">
+      <text class="stat-num text-green">{{stats.highMatches}}</text>
+      <text class="stat-label">高匹配</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-num text-yellow">{{stats.pendingJobs}}</text>
+      <text class="stat-label">进行中</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">
+      <text class="card-title-icon">⚡</text>
+      <text>快捷操作</text>
+    </view>
+    <view class="quick-actions">
+      <view class="action-btn" bindtap="goToResume">
+        <text class="action-icon">📝</text>
+        <text class="action-text">完善简历</text>
+      </view>
+      <view class="action-btn" bindtap="addJob">
+        <text class="action-icon">➕</text>
+        <text class="action-text">添加职位</text>
+      </view>
+      <view class="action-btn" bindtap="goToMatch">
+        <text class="action-icon">🎯</text>
+        <text class="action-text">智能匹配</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{topMatches.length > 0}}">
+    <view class="card-title">
+      <text class="card-title-icon">🏆</text>
+      <text>最佳匹配</text>
+      <text class="text-subtext text-small" style="margin-left:auto;" bindtap="goToMatch">查看全部 ></text>
+    </view>
+    <view class="match-list">
+      <view class="match-item" wx:for="{{topMatches}}" wx:key="id" bindtap="goToJobDetail" data-id="{{item.id}}">
+        <view class="match-header">
+          <view class="match-info">
+            <text class="match-company">{{item.company}}</text>
+            <text class="match-title">{{item.title}}</text>
+          </view>
+          <view class="score-circle {{item.score >= 80 ? 'score-high' : item.score >= 60 ? 'score-mid' : 'score-low'}}">
+            {{item.score}}
+          </view>
+        </view>
+        <view class="match-meta">
+          <text class="tag {{item.score >= 80 ? 'tag-green' : item.score >= 60 ? 'tag-yellow' : 'tag-red'}}">{{item.matchLabel}}级匹配</text>
+          <text class="tag tag-blue">{{item.location}}</text>
+          <text class="tag tag-peach">{{item.salaryMin}}-{{item.salaryMax}}{{item.salaryUnit}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{!resume || !resume.name}}">
+    <view class="empty-state">
+      <text class="empty-icon">📋</text>
+      <text>还没有简历信息</text>
+      <text class="text-subtext text-small mt-2">完善简历后，AI将为你智能匹配最佳职位</text>
+      <view class="btn btn-primary mt-3" style="width:300rpx;" bindtap="goToResume">立即完善简历</view>
+    </view>
+  </view>
+</view>
